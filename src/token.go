@@ -7,6 +7,7 @@ var keywords = map[string]string{
 	"if":     "IF_KW",
 	"else":   "ELSE_KW",
 	"return": "RETURN_KW",
+	"string": "TYPE",
 }
 
 const (
