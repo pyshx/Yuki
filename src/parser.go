@@ -10,7 +10,7 @@ import (
 type Parser struct {
 	lexer *Lexer
 	token *Token // current token
-	tree  *ggv.Graph
+	tree  *ggv.Escape
 }
 
 func (p *Parser) consumeToken() *Token {
@@ -40,12 +40,6 @@ func (p *Parser) term(type_ string) *Token {
 
 func (p *Parser) addNode(name, parent string) string {
 	id := RandomString()
-	p.tree.AddNode("G", id, map[string]string{"label": name})
-	p.tree.AddEdge(parent, id, true, nil)
-	return id
-}
-
-func (p *Parser) addNodeWithId(name, parent, id string) string {
 	p.tree.AddNode("G", id, map[string]string{"label": name})
 	p.tree.AddEdge(parent, id, true, nil)
 	return id
@@ -92,7 +86,6 @@ func (p *Parser) ntParameters(parent string) {
 	}
 }
 
-// TODO
 func (p *Parser) ntParameterList(parent string) {
 	id := p.addNode("ParameterList", parent)
 	if p.token.type_ == IDENT {
@@ -123,16 +116,16 @@ func (p *Parser) ntFactor(parent string) {
 		p.term(RPAREN)
 	} else if p.peekNextToken().type_ == LPAREN {
 		p.ntFunctionCall(id)
+	} else if p.peekNextToken().type_ == LBRACKET && p.token.type_ == IDENT {
+		p.ntArrIdent(id)
 	} else if p.token.type_ == IDENT {
 		p.editNodeName(id, "\"Factor ("+p.term(IDENT).literal+")\"")
 	} else if p.token.type_ == INTEGER {
 		p.editNodeName(id, "\"Factor ("+p.term(INTEGER).literal+")\"")
-	} else if p.peekNextToken().type_ == LBRACKET {
-		p.ntArrIdent(id)
 	} else if p.token.type_ == STRING {
-		val := p.term(STRING).literal
-		val = val[1 : len(val)-1]
-		p.editNodeName(id, "\"Factor ("+val+")\"")
+		literal := p.term(STRING).literal
+		literal = literal[1 : len(literal)-1]
+		p.editNodeName(id, "\"Factor String ("+literal+")\"")
 	}
 }
 
@@ -156,7 +149,7 @@ func (p *Parser) ntCompExpr(parent string) {
 	if p.token.type_ == COMP_OP {
 		symbol := p.token.literal
 		p.term(COMP_OP)
-		p.editNodeName(id, "\"COMP ("+fmt.Sprintf("%s", symbol)+")\"")
+		p.editNodeName(id, "\"CompExpr ("+fmt.Sprintf("%s", symbol)+")\"")
 		p.ntExpr(id)
 	}
 }
@@ -288,7 +281,9 @@ func (p *Parser) Parse() {
 
 func Parse(lexer *Lexer) *Parser {
 	graphAst, _ := ggv.ParseString(`digraph G {}`)
-	graph := ggv.NewGraph()
+	graph := ggv.NewEscape()
 	ggv.Analyse(graphAst, graph)
+	graph.AddAttr("G", "labelloc", "t")
+	graph.AddAttr("G", "label", "Source:\n"+lexer.program+"")
 	return &Parser{lexer, lexer.NextToken(), graph}
 }
