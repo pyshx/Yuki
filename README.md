@@ -13,9 +13,5 @@ Please run `$ go run . [file]` where `[file]` represents an optional argument (w
 ## Lexer Testing
 Input files for our lexer's test suite can be found in `src/tests/`. Please do `go test` to run the tests.
 
-## Visualizations(Needs work)
-
-Here are some sample generated visualizations from `images/`. The program source is shown at the top of the image.
-
 ## References
 - [Writing An Interpreter in Go by Thorsten Ball](https://interpreterbook.com/)
